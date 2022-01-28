@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+#
+# Parse the pesky Clear notes for Taxes
+# Working on as far as 2022
+#
+
+import os
+import sys
+
+if len(sys.argv) == 1:
+    print("""Usage: parsecorretagem INPUTFILE
+Where INPUTFILE is a file containing the raw Clear text pasted and filtered.""")
+    sys.exit(1)
+
+# Set these to the size of your "matrix":
+ROWS = 15 # never include headers!
+COLS = 8
+
+class Parser:
+    def __init__(self):
+        self.colcounter = 0 # to build the "csv" later (10 cols)
+        self.rowcounter = 0 # to build a "column"
+        self.matrix = [] # a container for cols
+        self.column = [] 
+
+    def parse(self, infile):
+        raw = ""
+        with open(infile, 'r') as inp:
+            raw = inp.read()
+
+        for line in raw.split('\n'):
+            if line != "":
+                # First, create a column
+                self.column.append(line)
+                self.rowcounter += 1
+            else:
+                # Add this column to the matrix:
+                self.matrix.append(self.column)
+                self.column = []
+                self.rowcounter = 0
+
+        # Read elements from indeces. Instead of using hard limits, simply try to
+        # read as many elements as possible before "falling out"
+        i = 0
+        while True:
+            line = ""
+            try:
+                for col in self.matrix:
+                    line += "%s\t" % col[i]
+
+                    # make numbers US locale
+                    final = line.replace('.', '').replace(',', '.')
+
+                print(final)
+                i += 1
+            except IndexError:
+                break
+
+def main():
+    p = Parser()
+    p.parse(sys.argv[1])
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
